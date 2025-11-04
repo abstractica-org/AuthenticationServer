@@ -1,6 +1,7 @@
 package com.auth.server.integration;
 
 import com.auth.server.AbstractTest;
+import com.auth.server.config.TestConfig;
 import com.auth.server.dto.AuthResponse;
 import com.auth.server.dto.LoginRequest;
 import com.auth.server.entity.RegisteredClient;
@@ -17,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -34,6 +36,7 @@ import static org.assertj.core.api.Assertions.*;
  * Tests OAuth2 client credentials flow and authorization code flow.
  */
 @DisplayName("OAuth2 Flow Integration Tests")
+@Import(TestConfig.class)
 public class OAuth2FlowIntegrationTest extends AbstractTest {
 
     @LocalServerPort

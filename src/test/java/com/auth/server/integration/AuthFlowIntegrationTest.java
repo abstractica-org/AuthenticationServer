@@ -1,6 +1,7 @@
 package com.auth.server.integration;
 
 import com.auth.server.AbstractTest;
+import com.auth.server.config.TestConfig;
 import com.auth.server.dto.AuthResponse;
 import com.auth.server.dto.LoginRequest;
 import com.auth.server.dto.RegisterRequest;
@@ -21,6 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -32,6 +34,7 @@ import static org.assertj.core.api.Assertions.*;
  * Tests full user journeys including registration, email verification, login, 2FA setup, and password reset.
  */
 @DisplayName("Authentication Flow Integration Tests")
+@Import(TestConfig.class)
 public class AuthFlowIntegrationTest extends AbstractTest {
 
     @LocalServerPort
@@ -94,7 +97,7 @@ public class AuthFlowIntegrationTest extends AbstractTest {
 
         // Then - Verify registration successful
         registerResponse.then()
-                .statusCode(HttpStatus.OK.value());
+                .statusCode(HttpStatus.CREATED.value());
 
         AuthResponse authResponse = registerResponse.as(AuthResponse.class);
         assertThat(authResponse.getUser()).isNotNull();
@@ -295,7 +298,13 @@ public class AuthFlowIntegrationTest extends AbstractTest {
                 .when()
                 .post(baseUrl + "/api/auth/login");
 
-        String accessToken = loginResponse.as(AuthResponse.class).getAccessToken();
+        AuthResponse loginAuth = loginResponse.as(AuthResponse.class);
+        String accessToken = loginAuth.getAccessToken();
+        if (accessToken == null) {
+            System.out.println("Login response status: " + loginResponse.getStatusCode());
+            System.out.println("Login response body: " + loginResponse.getBody().asString());
+            System.out.println("AuthResponse: " + loginAuth);
+        }
 
         // When - Setup 2FA
         Response setup2FAResponse = given()
@@ -309,7 +318,7 @@ public class AuthFlowIntegrationTest extends AbstractTest {
                 .statusCode(HttpStatus.OK.value());
 
         assertThat(setup2FAResponse.jsonPath().getString("secret")).isNotEmpty();
-        assertThat(setup2FAResponse.jsonPath().getString("qrCode")).isNotEmpty();
+        assertThat(setup2FAResponse.jsonPath().getString("qr_code_image")).isNotEmpty();
     }
 
     @Test

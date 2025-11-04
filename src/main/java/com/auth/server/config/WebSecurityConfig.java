@@ -57,6 +57,9 @@ public class WebSecurityConfig {
 
                 // Configure authorization
                 .authorizeHttpRequests(authz -> authz
+                        // Health check - must be first to take precedence
+                        .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
+
                         // Public endpoints
                         .requestMatchers("/", "/index.html").permitAll()
                         .requestMatchers("/error").permitAll()
@@ -64,7 +67,6 @@ public class WebSecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/public/**").permitAll()
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        .requestMatchers("/actuator/health").permitAll()
                         // OAuth2 endpoints - public access
                         .requestMatchers("/.well-known/**").permitAll()
                         .requestMatchers("/oauth2/**").permitAll()
