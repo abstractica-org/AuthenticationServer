@@ -60,6 +60,9 @@ public class WebSecurityConfig {
                         .requestMatchers("/api/public/**").permitAll()
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
+                        // OAuth2 endpoints - public access
+                        .requestMatchers("/.well-known/**").permitAll()
+                        .requestMatchers("/oauth2/**").permitAll()
 
                         // Protected endpoints
                         .requestMatchers("/api/users/**").authenticated()

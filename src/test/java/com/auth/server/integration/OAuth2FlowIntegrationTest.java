@@ -20,7 +20,9 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -153,14 +155,17 @@ public class OAuth2FlowIntegrationTest extends AbstractTest {
         // Given - Simulate authorization code obtained
         String authorizationCode = "auth-code-xyz789";
 
+        Map<String, Object> tokenRequest = new HashMap<>();
+        tokenRequest.put("grant_type", "authorization_code");
+        tokenRequest.put("code", authorizationCode);
+        tokenRequest.put("client_id", testClient.getClientId());
+        tokenRequest.put("client_secret", "test-secret-456");
+        tokenRequest.put("redirect_uri", "http://localhost:3000/callback");
+
         // When - Request token with authorization code
         Response tokenResponse = given()
-                .contentType("application/x-www-form-urlencoded")
-                .formParam("grant_type", "authorization_code")
-                .formParam("code", authorizationCode)
-                .formParam("client_id", testClient.getClientId())
-                .formParam("client_secret", "test-secret-456")
-                .formParam("redirect_uri", "http://localhost:3000/callback")
+                .contentType("application/json")
+                .body(tokenRequest)
                 .when()
                 .post(baseUrl + "/oauth2/token");
 
@@ -177,12 +182,15 @@ public class OAuth2FlowIntegrationTest extends AbstractTest {
     @DisplayName("Should handle client credentials flow")
     void testClientCredentialsFlow() {
         // When - Request token with client credentials
+        Map<String, Object> tokenRequest = new HashMap<>();
+        tokenRequest.put("grant_type", "client_credentials");
+        tokenRequest.put("client_id", testClient.getClientId());
+        tokenRequest.put("client_secret", "test-secret-456");
+        tokenRequest.put("scope", "read write");
+
         Response tokenResponse = given()
-                .contentType("application/x-www-form-urlencoded")
-                .formParam("grant_type", "client_credentials")
-                .formParam("client_id", testClient.getClientId())
-                .formParam("client_secret", "test-secret-456")
-                .formParam("scope", "read write")
+                .contentType("application/json")
+                .body(tokenRequest)
                 .when()
                 .post(baseUrl + "/oauth2/token");
 
@@ -205,12 +213,15 @@ public class OAuth2FlowIntegrationTest extends AbstractTest {
     @DisplayName("Should reject client credentials with invalid secret")
     void testClientCredentialsWithInvalidSecret() {
         // When - Request token with wrong secret
+        Map<String, Object> tokenRequest = new HashMap<>();
+        tokenRequest.put("grant_type", "client_credentials");
+        tokenRequest.put("client_id", testClient.getClientId());
+        tokenRequest.put("client_secret", "wrong-secret-xyz");
+        tokenRequest.put("scope", "read write");
+
         Response tokenResponse = given()
-                .contentType("application/x-www-form-urlencoded")
-                .formParam("grant_type", "client_credentials")
-                .formParam("client_id", testClient.getClientId())
-                .formParam("client_secret", "wrong-secret-xyz")
-                .formParam("scope", "read write")
+                .contentType("application/json")
+                .body(tokenRequest)
                 .when()
                 .post(baseUrl + "/oauth2/token");
 
@@ -225,12 +236,15 @@ public class OAuth2FlowIntegrationTest extends AbstractTest {
     @DisplayName("Should reject request with non-existent client")
     void testClientCredentialsWithNonExistentClient() {
         // When - Request token for non-existent client
+        Map<String, Object> tokenRequest = new HashMap<>();
+        tokenRequest.put("grant_type", "client_credentials");
+        tokenRequest.put("client_id", "non-existent-client");
+        tokenRequest.put("client_secret", "any-secret");
+        tokenRequest.put("scope", "read write");
+
         Response tokenResponse = given()
-                .contentType("application/x-www-form-urlencoded")
-                .formParam("grant_type", "client_credentials")
-                .formParam("client_id", "non-existent-client")
-                .formParam("client_secret", "any-secret")
-                .formParam("scope", "read write")
+                .contentType("application/json")
+                .body(tokenRequest)
                 .when()
                 .post(baseUrl + "/oauth2/token");
 
@@ -263,10 +277,13 @@ public class OAuth2FlowIntegrationTest extends AbstractTest {
         String refreshToken = loginResponse.as(AuthResponse.class).getRefreshToken();
 
         // When - Request new access token with refresh token
+        Map<String, Object> refreshRequest = new HashMap<>();
+        refreshRequest.put("grant_type", "refresh_token");
+        refreshRequest.put("refresh_token", refreshToken);
+
         Response refreshResponse = given()
-                .contentType("application/x-www-form-urlencoded")
-                .formParam("grant_type", "refresh_token")
-                .formParam("refresh_token", refreshToken)
+                .contentType("application/json")
+                .body(refreshRequest)
                 .when()
                 .post(baseUrl + "/oauth2/token");
 
@@ -299,9 +316,12 @@ public class OAuth2FlowIntegrationTest extends AbstractTest {
         String accessToken = loginResponse.as(AuthResponse.class).getAccessToken();
 
         // When - Introspect token
+        Map<String, String> introspectRequest = new HashMap<>();
+        introspectRequest.put("token", accessToken);
+
         Response introspectResponse = given()
-                .contentType("application/x-www-form-urlencoded")
-                .formParam("token", accessToken)
+                .contentType("application/json")
+                .body(introspectRequest)
                 .when()
                 .post(baseUrl + "/oauth2/introspect");
 
@@ -338,9 +358,12 @@ public class OAuth2FlowIntegrationTest extends AbstractTest {
         String refreshToken = loginResponse.as(AuthResponse.class).getRefreshToken();
 
         // When - Revoke token
+        Map<String, String> revokeRequest = new HashMap<>();
+        revokeRequest.put("token", refreshToken);
+
         Response revokeResponse = given()
-                .contentType("application/x-www-form-urlencoded")
-                .formParam("token", refreshToken)
+                .contentType("application/json")
+                .body(revokeRequest)
                 .when()
                 .post(baseUrl + "/oauth2/revoke");
 
@@ -355,12 +378,15 @@ public class OAuth2FlowIntegrationTest extends AbstractTest {
     @DisplayName("Should include scope in token response")
     void testScopeInTokenResponse() {
         // When - Request token with specific scopes
+        Map<String, Object> tokenRequest = new HashMap<>();
+        tokenRequest.put("grant_type", "client_credentials");
+        tokenRequest.put("client_id", testClient.getClientId());
+        tokenRequest.put("client_secret", "test-secret-456");
+        tokenRequest.put("scope", "read write");
+
         Response tokenResponse = given()
-                .contentType("application/x-www-form-urlencoded")
-                .formParam("grant_type", "client_credentials")
-                .formParam("client_id", testClient.getClientId())
-                .formParam("client_secret", "test-secret-456")
-                .formParam("scope", "read write")
+                .contentType("application/json")
+                .body(tokenRequest)
                 .when()
                 .post(baseUrl + "/oauth2/token");
 

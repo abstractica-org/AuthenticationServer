@@ -209,21 +209,21 @@ class UserController2FATest extends AbstractTest {
     void testUnauthorizedAccess() throws Exception {
         mockMvc.perform(post("/api/users/me/2fa/setup")
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().is3xxRedirection());  // Redirects to login
+                .andExpect(status().isForbidden());
 
         mockMvc.perform(post("/api/users/me/2fa/verify")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(
                                 Verify2FARequest.builder().code("123456").build())))
-                .andExpect(status().is3xxRedirection());
+                .andExpect(status().isForbidden());
 
         mockMvc.perform(post("/api/users/me/2fa/backup-codes")
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().is3xxRedirection());
+                .andExpect(status().isForbidden());
 
         mockMvc.perform(delete("/api/users/me/2fa")
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().is3xxRedirection());
+                .andExpect(status().isForbidden());
     }
 
     @Test

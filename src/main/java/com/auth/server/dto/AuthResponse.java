@@ -41,5 +41,7 @@ public class AuthResponse {
     @JsonProperty("2fa_token")
     private String twoFAToken;
 
+    private String message;
+
     private LocalDateTime timestamp;
 }

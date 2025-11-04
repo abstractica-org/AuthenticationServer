@@ -19,10 +19,19 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.JwtClaimsSet;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 /**
@@ -40,6 +49,14 @@ public class AuthController {
     private final VerificationTokenService verificationTokenService;
     private final EmailService emailService;
     private final AuditService auditService;
+    private final AuthenticationManager authenticationManager;
+    private final JwtEncoder jwtEncoder;
+
+    @Value("${jwt.expiration:900000}")
+    private long accessTokenExpiration;
+
+    @Value("${jwt.refresh.expiration:2592000000}")
+    private long refreshTokenExpiration;
 
     /**
      * Register a new user
@@ -194,13 +211,100 @@ public class AuthController {
     }
 
     /**
-     * Placeholder for login endpoint (will be implemented in Phase 3 with OAuth2)
-     * For now, return a message indicating OAuth2 endpoints should be used
+     * Login endpoint for user authentication
+     *
+     * @param loginRequest Login request with username/email and password
+     * @param request HTTP request
+     * @return AuthResponse with JWT token
      */
     @PostMapping("/login")
-    @Operation(summary = "Login (Use OAuth2 endpoints)", description = "Please use the standard OAuth2 token endpoint for authentication")
-    public ResponseEntity<String> login() {
-        return ResponseEntity.ok("Please use the OAuth2 token endpoint: POST /oauth2/token");
+    @Operation(summary = "Login", description = "Authenticate user with username/email and password and return JWT token")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Login successful",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = AuthResponse.class))),
+            @ApiResponse(responseCode = "401", description = "Invalid credentials or user not verified"),
+            @ApiResponse(responseCode = "400", description = "Invalid input")
+    })
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest loginRequest, HttpServletRequest request) {
+        log.info("Login request for user: {}", loginRequest.getUsernameOrEmail());
+
+        String ipAddress = IpAddressUtil.getClientIpAddress(request);
+        String userAgent = IpAddressUtil.getUserAgent(request);
+
+        try {
+            // Authenticate user
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            loginRequest.getUsernameOrEmail(),
+                            loginRequest.getPassword()
+                    )
+            );
+
+            // Get user details
+            User user = userService.findByUsernameOrEmail(loginRequest.getUsernameOrEmail());
+
+            // Check if email is verified
+            if (!user.getEmailVerified()) {
+                log.warn("Login attempted for unverified email: {}", user.getEmail());
+                auditService.logAuthenticationEvent(user.getUsername(), user.getId().toString(), ipAddress, userAgent, false);
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(AuthResponse.builder()
+                                .message("Email not verified. Please verify your email before login.")
+                                .requiresEmailVerification(true)
+                                .build());
+            }
+
+            // Check if account is locked
+            if (user.getLocked()) {
+                log.warn("Login attempted for locked account: {}", user.getUsername());
+                auditService.logAuthenticationEvent(user.getUsername(), user.getId().toString(), ipAddress, userAgent, false);
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(AuthResponse.builder()
+                                .message("Account is locked. Please contact support.")
+                                .build());
+            }
+
+            // Generate JWT token
+            Instant now = Instant.now();
+            JwtClaimsSet claims = JwtClaimsSet.builder()
+                    .issuer("auth-server")
+                    .issuedAt(now)
+                    .expiresAt(now.plusMillis(accessTokenExpiration))
+                    .subject(user.getUsername())
+                    .claim("email", user.getEmail())
+                    .claim("roles", user.getRoles().stream().map(r -> r.getName()).toList())
+                    .build();
+
+            Jwt encodedToken = jwtEncoder.encode(
+                    org.springframework.security.oauth2.jwt.JwtEncoderParameters.from(claims)
+            );
+
+            // Log successful login
+            auditService.logAuthenticationEvent(user.getUsername(), user.getId().toString(), ipAddress, userAgent, true);
+
+            return ResponseEntity.ok(AuthResponse.builder()
+                    .accessToken(encodedToken.getTokenValue())
+                    .tokenType("Bearer")
+                    .expiresIn(accessTokenExpiration / 1000)
+                    .user(UserResponse.from(user))
+                    .requires2FA(user.getTwoFactorEnabled())
+                    .timestamp(LocalDateTime.now())
+                    .build());
+
+        } catch (AuthenticationException e) {
+            log.warn("Authentication failed for user: {}", loginRequest.getUsernameOrEmail());
+            auditService.logAuthenticationEvent(loginRequest.getUsernameOrEmail(), "unknown", ipAddress, userAgent, false);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(AuthResponse.builder()
+                            .message("Invalid username/email or password")
+                            .build());
+        } catch (Exception e) {
+            log.error("Login error for user: {}", loginRequest.getUsernameOrEmail(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(AuthResponse.builder()
+                            .message("An error occurred during login")
+                            .build());
+        }
     }
 
     /**
@@ -302,7 +406,7 @@ public class AuthController {
      */
     @PostMapping("/logout")
     @Operation(summary = "Logout", description = "Logout and revoke tokens")
-    public ResponseEntity<String> logout() {
-        return ResponseEntity.ok("Logout will be implemented with OAuth2 token revocation");
+    public ResponseEntity<MessageResponse> logout() {
+        return ResponseEntity.ok(new MessageResponse("Logout will be implemented with OAuth2 token revocation"));
     }
 }

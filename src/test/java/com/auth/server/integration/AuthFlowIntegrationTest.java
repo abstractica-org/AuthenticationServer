@@ -70,8 +70,8 @@ public class AuthFlowIntegrationTest extends AbstractTest {
                 ));
 
         // Clean up test data
-        userRepository.deleteAll();
         verificationTokenRepository.deleteAll();
+        userRepository.deleteAll();
     }
 
     @Test
@@ -318,13 +318,14 @@ public class AuthFlowIntegrationTest extends AbstractTest {
         // Given
         User user = createTestUser("resetuser", "reset@example.com", userRole);
         user.setEmailVerified(true);
-        userRepository.save(user);
+        User savedUser = userRepository.save(user);
+        userRepository.flush();  // Ensure user is persisted to DB
 
         // Create password reset token
         VerificationToken resetToken = VerificationToken.builder()
                 .token("validResetToken123")
                 .tokenType(VerificationToken.TokenType.PASSWORD_RESET)
-                .user(user)
+                .user(savedUser)
                 .expiryDate(java.time.LocalDateTime.now().plusHours(1))
                 .build();
         verificationTokenRepository.save(resetToken);
@@ -525,9 +526,10 @@ public class AuthFlowIntegrationTest extends AbstractTest {
         assertThat(newUser).isNotNull();
         assertThat(newUser.getEmailVerified()).isFalse();
 
-        // Get verification token
-        VerificationToken token = newUser.getVerificationTokens().stream()
-                .filter(t -> t.getTokenType() == VerificationToken.TokenType.EMAIL_VERIFICATION)
+        // Get verification token from repository instead of navigating lazy collection
+        VerificationToken token = verificationTokenRepository.findAll().stream()
+                .filter(t -> t.getUser().getId().equals(newUser.getId())
+                        && t.getTokenType() == VerificationToken.TokenType.EMAIL_VERIFICATION)
                 .findFirst()
                 .orElse(null);
 

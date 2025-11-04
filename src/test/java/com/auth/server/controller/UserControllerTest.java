@@ -68,12 +68,11 @@ public class UserControllerTest extends AbstractTest {
     }
 
     @Test
-    @DisplayName("Should redirect to login when accessing protected endpoint without authentication")
+    @DisplayName("Should return 403 when accessing protected endpoint without authentication")
     void testGetCurrentUserUnauthenticated() throws Exception {
         // When & Then
         mockMvc.perform(get("/api/users/me"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("http://localhost/login"));
+                .andExpect(status().isForbidden());
     }
 
     @Test
@@ -202,7 +201,7 @@ public class UserControllerTest extends AbstractTest {
                 // Note: This would require proper JWT token in real scenario
                 // For testing with @WithMockUser, we would use:
                 // @WithMockUser(username = "testuser", roles = {"USER", "ADMIN"})
-                .andExpect(status().is3xxRedirection());  // Invalid token redirects to login
+                .andExpect(status().isForbidden());  // Invalid token returns forbidden
     }
 
     @Test

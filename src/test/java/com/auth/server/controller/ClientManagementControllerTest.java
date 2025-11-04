@@ -118,7 +118,7 @@ public class ClientManagementControllerTest extends AbstractTest {
     }
 
     @Test
-    @DisplayName("Should redirect when creating client without authentication")
+    @DisplayName("Should return 403 when creating client without authentication")
     void testCreateClientWithoutAdminRole() throws Exception {
         // Given
         ClientCreateRequest request = ClientCreateRequest.builder()
@@ -128,15 +128,15 @@ public class ClientManagementControllerTest extends AbstractTest {
                 .scopes("read,write")
                 .build();
 
-        // When & Then - should redirect to login because no authentication
+        // When & Then - should return 403 because no authentication
         mockMvc.perform(post("/api/admin/clients")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().is3xxRedirection());
+                .andExpect(status().isForbidden());
     }
 
     @Test
-    @DisplayName("Should return 401 when creating client without authentication")
+    @DisplayName("Should return 403 when creating client without authentication")
     void testCreateClientUnauthenticated() throws Exception {
         // Given
         ClientCreateRequest request = ClientCreateRequest.builder()
@@ -148,7 +148,7 @@ public class ClientManagementControllerTest extends AbstractTest {
         mockMvc.perform(post("/api/admin/clients")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().is3xxRedirection());
+                .andExpect(status().isForbidden());
     }
 
     @Test
@@ -215,7 +215,7 @@ public class ClientManagementControllerTest extends AbstractTest {
     void testGetAllClientsWithoutAdminRole() throws Exception {
         // When & Then
         mockMvc.perform(get("/api/admin/clients"))
-                .andExpect(status().is3xxRedirection());
+                .andExpect(status().isForbidden());
     }
 
     @Test
@@ -241,7 +241,7 @@ public class ClientManagementControllerTest extends AbstractTest {
         mockMvc.perform(put("/api/admin/clients/" + clientId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(updateRequest)))
-                .andExpect(status().is3xxRedirection());
+                .andExpect(status().isForbidden());
     }
 
     @Test
@@ -269,7 +269,7 @@ public class ClientManagementControllerTest extends AbstractTest {
     void testDeleteClientWithoutAdminRole() throws Exception {
         // When & Then
         mockMvc.perform(delete("/api/admin/clients/" + clientId))
-                .andExpect(status().is3xxRedirection());
+                .andExpect(status().isForbidden());
     }
 
     @Test
