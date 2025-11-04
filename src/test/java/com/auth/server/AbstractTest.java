@@ -5,6 +5,7 @@ import com.auth.server.entity.User;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.HashSet;
@@ -22,6 +23,9 @@ public abstract class AbstractTest {
     @Autowired
     protected ObjectMapper objectMapper;
 
+    @Autowired
+    protected PasswordEncoder passwordEncoder;
+
     /**
      * Create a test user
      */
@@ -30,7 +34,7 @@ public abstract class AbstractTest {
                 .id(UUID.randomUUID())
                 .username(username)
                 .email(email)
-                .passwordHash("$2a$13$hashedPasswordHash123456789")  // BCrypt hashed "Test@1234"
+                .passwordHash(passwordEncoder.encode("Test@1234"))
                 .emailVerified(true)
                 .enabled(true)
                 .locked(false)

@@ -128,15 +128,15 @@ public class ClientManagementControllerTest extends AbstractTest {
                 .scopes("read,write")
                 .build();
 
-        // When & Then - should return 403 because no authentication
+        // When & Then - should return 401 because no authentication
         mockMvc.perform(post("/api/admin/clients")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
-    @DisplayName("Should return 403 when creating client without authentication")
+    @DisplayName("Should return 401 when creating client without authentication")
     void testCreateClientUnauthenticated() throws Exception {
         // Given
         ClientCreateRequest request = ClientCreateRequest.builder()
@@ -148,7 +148,7 @@ public class ClientManagementControllerTest extends AbstractTest {
         mockMvc.perform(post("/api/admin/clients")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -211,11 +211,11 @@ public class ClientManagementControllerTest extends AbstractTest {
     }
 
     @Test
-    @DisplayName("Should return 403 when listing clients without admin role")
+    @DisplayName("Should return 401 when listing clients without authentication")
     void testGetAllClientsWithoutAdminRole() throws Exception {
         // When & Then
         mockMvc.perform(get("/api/admin/clients"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -229,7 +229,7 @@ public class ClientManagementControllerTest extends AbstractTest {
     }
 
     @Test
-    @DisplayName("Should return 403 when updating client without admin role")
+    @DisplayName("Should return 401 when updating client without authentication")
     void testUpdateClientWithoutAdminRole() throws Exception {
         // Given
         ClientCreateRequest updateRequest = ClientCreateRequest.builder()
@@ -241,7 +241,7 @@ public class ClientManagementControllerTest extends AbstractTest {
         mockMvc.perform(put("/api/admin/clients/" + clientId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(updateRequest)))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -269,7 +269,7 @@ public class ClientManagementControllerTest extends AbstractTest {
     void testDeleteClientWithoutAdminRole() throws Exception {
         // When & Then
         mockMvc.perform(delete("/api/admin/clients/" + clientId))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test

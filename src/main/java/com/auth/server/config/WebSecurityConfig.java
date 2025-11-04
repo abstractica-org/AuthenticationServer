@@ -14,9 +14,11 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfigurationSource;
+import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * Main web security configuration for the application.
@@ -36,8 +38,11 @@ public class WebSecurityConfig {
      * Main security filter chain for application endpoints
      */
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, SecurityHeadersFilter securityHeadersFilter) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, SecurityHeadersFilter securityHeadersFilter, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
         http
+                // Add JWT authentication filter before the default authentication filter
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+
                 // Add security headers filter
                 .addFilterBefore(securityHeadersFilter, UsernamePasswordAuthenticationFilter.class)
 
@@ -73,6 +78,11 @@ public class WebSecurityConfig {
                         .anyRequest().authenticated()
                 )
 
+                // Configure exception handling
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(authenticationEntryPoint())
+                )
+
                 // Configure authentication provider
                 .authenticationProvider(authenticationProvider());
 
@@ -96,5 +106,17 @@ public class WebSecurityConfig {
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
+    }
+
+    /**
+     * Authentication entry point for returning 401 on missing/invalid authentication
+     */
+    @Bean
+    public AuthenticationEntryPoint authenticationEntryPoint() {
+        return (request, response, authException) -> {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"status\":401,\"message\":\"Unauthorized - authentication required\"}");
+        };
     }
 }

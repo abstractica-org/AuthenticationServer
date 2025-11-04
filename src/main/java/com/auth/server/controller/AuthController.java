@@ -279,11 +279,15 @@ public class AuthController {
                     org.springframework.security.oauth2.jwt.JwtEncoderParameters.from(claims)
             );
 
+            // Generate refresh token
+            String refreshToken = generateRefreshToken(user.getUsername());
+
             // Log successful login
             auditService.logAuthenticationEvent(user.getUsername(), user.getId().toString(), ipAddress, userAgent, true);
 
             return ResponseEntity.ok(AuthResponse.builder()
                     .accessToken(encodedToken.getTokenValue())
+                    .refreshToken(refreshToken)
                     .tokenType("Bearer")
                     .expiresIn(accessTokenExpiration / 1000)
                     .user(UserResponse.from(user))
@@ -399,6 +403,24 @@ public class AuthController {
         return request.getScheme() + "://" + request.getServerName()
                 + ":" + request.getServerPort()
                 + "/api/auth/reset-password?token=" + token;
+    }
+
+    /**
+     * Generate refresh token
+     */
+    private String generateRefreshToken(String username) {
+        Instant now = Instant.now();
+        JwtClaimsSet claims = JwtClaimsSet.builder()
+                .issuer("auth-server")
+                .issuedAt(now)
+                .expiresAt(now.plusMillis(refreshTokenExpiration))
+                .subject(username)
+                .claim("type", "refresh")
+                .build();
+
+        return jwtEncoder.encode(
+                org.springframework.security.oauth2.jwt.JwtEncoderParameters.from(claims)
+        ).getTokenValue();
     }
 
     /**
