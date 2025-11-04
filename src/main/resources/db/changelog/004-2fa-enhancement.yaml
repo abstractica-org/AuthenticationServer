@@ -16,8 +16,10 @@ databaseChangeLog:
               - column:
                   name: two_factor_secret
                   type: VARCHAR(255)
-                  nullable: true
+                  constraints:
+                    nullable: true
               - column:
                   name: two_factor_backup_codes
                   type: VARCHAR(2000)
-                  nullable: true
+                  constraints:
+                    nullable: true

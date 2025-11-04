@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authentication Server</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            max-width: 900px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.1em;
+            margin-bottom: 30px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        h2 {
+            color: #667eea;
+            font-size: 1.8em;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        h3 {
+            color: #764ba2;
+            font-size: 1.3em;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        .endpoint {
+            background: #f5f5f5;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.95em;
+        }
+
+        .method {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-weight: bold;
+            margin-right: 10px;
+            font-size: 0.85em;
+        }
+
+        .method.get {
+            background: #61affe;
+            color: white;
+        }
+
+        .method.post {
+            background: #49cc90;
+            color: white;
+        }
+
+        .method.put {
+            background: #fca130;
+            color: white;
+        }
+
+        .method.delete {
+            background: #f93e3e;
+            color: white;
+        }
+
+        .code-block {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 20px;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+
+        .code-block code {
+            color: #abb2bf;
+        }
+
+        .highlight {
+            color: #61dafb;
+        }
+
+        .string {
+            color: #98c379;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-align: center;
+            border: none;
+            cursor: pointer;
+            font-size: 1em;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-secondary:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+        }
+
+        .info-box strong {
+            color: #1976D2;
+        }
+
+        .feature-list {
+            list-style: none;
+            margin: 15px 0;
+        }
+
+        .feature-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .feature-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .auth-flow {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 4px;
+            margin: 15px 0;
+        }
+
+        .auth-flow ol {
+            margin-left: 20px;
+        }
+
+        .auth-flow li {
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+
+            h2 {
+                font-size: 1.3em;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Authentication Server</h1>
+        <p class="subtitle">OAuth2 Authorization Server with JWT Token Support</p>
+
+        <!-- Overview Section -->
+        <div class="section">
+            <h2>Overview</h2>
+            <p>Welcome to the Authentication Server! This is a secure OAuth2 authorization server that handles user authentication, registration, and token management for your applications.</p>
+            <ul class="feature-list">
+                <li>User registration and email verification</li>
+                <li>OAuth2 and JWT token-based authentication</li>
+                <li>Two-factor authentication (2FA) support</li>
+                <li>Password reset functionality</li>
+                <li>User profile management</li>
+                <li>Client credentials management</li>
+                <li>Comprehensive audit logging</li>
+            </ul>
+        </div>
+
+        <!-- Quick Start Section -->
+        <div class="section">
+            <h2>Quick Start Guide</h2>
+
+            <h3>1. Register a New User</h3>
+            <div class="endpoint">
+                <span class="method post">POST</span> /api/auth/register
+            </div>
+            <p>Create a new user account:</p>
+            <div class="code-block"><code>{
+  <span class="string">"username"</span>: <span class="string">"user@example.com"</span>,
+  <span class="string">"password"</span>: <span class="string">"SecurePassword123!"</span>,
+  <span class="string">"email"</span>: <span class="string">"user@example.com"</span>
+}</code></div>
+
+            <h3>2. Verify Email</h3>
+            <div class="endpoint">
+                <span class="method post">POST</span> /api/auth/verify-email
+            </div>
+            <p>Verify the user's email address using the token sent to their email:</p>
+            <div class="code-block"><code>{
+  <span class="string">"token"</span>: <span class="string">"verification-token-from-email"</span>
+}</code></div>
+
+            <h3>3. Authenticate (Login)</h3>
+            <div class="endpoint">
+                <span class="method post">POST</span> /api/auth/login
+            </div>
+            <p>Authenticate with username and password:</p>
+            <div class="code-block"><code>{
+  <span class="string">"username"</span>: <span class="string">"user@example.com"</span>,
+  <span class="string">"password"</span>: <span class="string">"SecurePassword123!"</span>
+}</code></div>
+            <p><strong>Response includes:</strong> access_token, refresh_token, and token_type</p>
+
+            <div class="info-box">
+                <strong>💡 Tip:</strong> Use the access_token in the Authorization header: <code>Authorization: Bearer {access_token}</code>
+            </div>
+        </div>
+
+        <!-- API Endpoints Section -->
+        <div class="section">
+            <h2>Available Endpoints</h2>
+
+            <h3>Authentication Endpoints</h3>
+            <div class="endpoint">
+                <span class="method post">POST</span> /api/auth/register
+            </div>
+            <p>Register a new user account</p>
+
+            <div class="endpoint">
+                <span class="method post">POST</span> /api/auth/verify-email
+            </div>
+            <p>Verify user's email address</p>
+
+            <div class="endpoint">
+                <span class="method post">POST</span> /api/auth/resend-verification
+            </div>
+            <p>Resend email verification token</p>
+
+            <div class="endpoint">
+                <span class="method post">POST</span> /api/auth/login
+            </div>
+            <p>Authenticate user and get tokens</p>
+
+            <div class="endpoint">
+                <span class="method post">POST</span> /api/auth/forgot-password
+            </div>
+            <p>Initiate password reset process</p>
+
+            <div class="endpoint">
+                <span class="method post">POST</span> /api/auth/reset-password
+            </div>
+            <p>Reset password with reset token</p>
+
+            <div class="endpoint">
+                <span class="method post">POST</span> /api/auth/logout
+            </div>
+            <p>Logout and invalidate tokens</p>
+
+            <h3>User Endpoints (Requires Authentication)</h3>
+            <div class="endpoint">
+                <span class="method get">GET</span> /api/users/me
+            </div>
+            <p>Get current user's profile information</p>
+
+            <div class="endpoint">
+                <span class="method post">POST</span> /api/users/me/2fa/setup
+            </div>
+            <p>Setup two-factor authentication</p>
+
+            <div class="endpoint">
+                <span class="method post">POST</span> /api/users/me/2fa/verify
+            </div>
+            <p>Verify two-factor authentication</p>
+
+            <div class="endpoint">
+                <span class="method delete">DELETE</span> /api/users/me/2fa
+            </div>
+            <p>Disable two-factor authentication</p>
+
+            <h3>Admin Endpoints</h3>
+            <div class="endpoint">
+                <span class="method get">GET</span> /api/admin/clients
+            </div>
+            <p>List all OAuth2 clients</p>
+
+            <div class="endpoint">
+                <span class="method post">POST</span> /api/admin/clients
+            </div>
+            <p>Create a new OAuth2 client</p>
+
+            <h3>Documentation & Health</h3>
+            <div class="endpoint">
+                <span class="method get">GET</span> /swagger-ui.html
+            </div>
+            <p>Interactive API documentation (Swagger UI)</p>
+
+            <div class="endpoint">
+                <span class="method get">GET</span> /v3/api-docs
+            </div>
+            <p>OpenAPI specification in JSON format</p>
+
+            <div class="endpoint">
+                <span class="method get">GET</span> /actuator/health
+            </div>
+            <p>Application health check endpoint</p>
+        </div>
+
+        <!-- Client Integration Section -->
+        <div class="section">
+            <h2>Integrating with a Client Application</h2>
+
+            <h3>Step-by-Step Integration Guide</h3>
+            <div class="auth-flow">
+                <ol>
+                    <li><strong>User Registration:</strong> POST to <code>/api/auth/register</code> with user credentials</li>
+                    <li><strong>Email Verification:</strong> User clicks link in email and POST to <code>/api/auth/verify-email</code></li>
+                    <li><strong>User Login:</strong> POST to <code>/api/auth/login</code> to obtain access token</li>
+                    <li><strong>API Requests:</strong> Include token in Authorization header: <code>Bearer {access_token}</code></li>
+                    <li><strong>Token Refresh:</strong> Use refresh_token to obtain new access_token when expired</li>
+                    <li><strong>Logout:</strong> POST to <code>/api/auth/logout</code> to invalidate tokens</li>
+                </ol>
+            </div>
+
+            <h3>Sample JavaScript Fetch Implementation</h3>
+            <div class="code-block"><code><span class="highlight">// Register a user</span>
+<span class="highlight">const registerUser = async (email, password) => {</span>
+  const response = await fetch(<span class="string">'/api/auth/register'</span>, {
+    method: <span class="string">'POST'</span>,
+    headers: { <span class="string">'Content-Type'</span>: <span class="string">'application/json'</span> },
+    body: JSON.stringify({ username: email, email, password })
+  });
+  return response.json();
+};
+
+<span class="highlight">// Login</span>
+<span class="highlight">const loginUser = async (email, password) => {</span>
+  const response = await fetch(<span class="string">'/api/auth/login'</span>, {
+    method: <span class="string">'POST'</span>,
+    headers: { <span class="string">'Content-Type'</span>: <span class="string">'application/json'</span> },
+    body: JSON.stringify({ username: email, password })
+  });
+  const data = await response.json();
+  localStorage.setItem(<span class="string">'accessToken'</span>, data.access_token);
+  return data;
+};
+
+<span class="highlight">// Make authenticated request</span>
+<span class="highlight">const fetchUserProfile = async () => {</span>
+  const token = localStorage.getItem(<span class="string">'accessToken'</span>);
+  const response = await fetch(<span class="string">'/api/users/me'</span>, {
+    headers: { <span class="string">'Authorization'</span>: <span class="string">`Bearer ${token}`</span> }
+  });
+  return response.json();
+};</code></div>
+
+            <h3>Sample cURL Examples</h3>
+            <div class="code-block"><code><span class="highlight"># Register a user</span>
+curl -X POST http://localhost:8080/api/auth/register \
+  -H <span class="string">"Content-Type: application/json"</span> \
+  -d <span class="string">'{"username":"user@example.com","email":"user@example.com","password":"SecurePassword123!"}'</span>
+
+<span class="highlight"># Login</span>
+curl -X POST http://localhost:8080/api/auth/login \
+  -H <span class="string">"Content-Type: application/json"</span> \
+  -d <span class="string">'{"username":"user@example.com","password":"SecurePassword123!"}'</span>
+
+<span class="highlight"># Get user profile (requires token)</span>
+curl -X GET http://localhost:8080/api/users/me \
+  -H <span class="string">"Authorization: Bearer YOUR_ACCESS_TOKEN"</span></code></div>
+        </div>
+
+        <!-- Security Section -->
+        <div class="section">
+            <h2>Security Features</h2>
+            <ul class="feature-list">
+                <li>Passwords are securely hashed using bcrypt</li>
+                <li>JWT tokens with configurable expiration</li>
+                <li>CORS protection enabled</li>
+                <li>HTTPS recommended for production</li>
+                <li>Email verification required for accounts</li>
+                <li>Two-factor authentication (2FA) support</li>
+                <li>Audit logging for all authentication events</li>
+                <li>Rate limiting on authentication endpoints</li>
+            </ul>
+
+            <div class="info-box">
+                <strong>⚠️ Important:</strong> Always use HTTPS in production to protect tokens and user credentials.
+            </div>
+        </div>
+
+        <!-- Support Section -->
+        <div class="section">
+            <h2>Documentation & Support</h2>
+            <p>For detailed API documentation and interactive testing:</p>
+            <div class="button-group">
+                <a href="/swagger-ui.html" class="btn btn-primary">View Swagger UI Documentation</a>
+                <a href="/v3/api-docs" class="btn btn-secondary">Download OpenAPI Spec</a>
+            </div>
+        </div>
+
+        <!-- Environment Info -->
+        <div class="section">
+            <h3>Server Information</h3>
+            <p>
+                <strong>Base URL:</strong> http://localhost:8080<br>
+                <strong>API Version:</strong> 1.0<br>
+                <strong>Status:</strong> <span style="color: green;">✓ Operational</span>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

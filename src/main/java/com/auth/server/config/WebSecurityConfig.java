@@ -53,11 +53,13 @@ public class WebSecurityConfig {
                 // Configure authorization
                 .authorizeHttpRequests(authz -> authz
                         // Public endpoints
+                        .requestMatchers("/", "/index.html").permitAll()
+                        .requestMatchers("/error").permitAll()
+                        .requestMatchers("/static/**", "/css/**", "/js/**", "/images/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/public/**").permitAll()
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
-                        .requestMatchers("/login").permitAll()
 
                         // Protected endpoints
                         .requestMatchers("/api/users/**").authenticated()
@@ -69,22 +71,7 @@ public class WebSecurityConfig {
                 )
 
                 // Configure authentication provider
-                .authenticationProvider(authenticationProvider())
-
-                // Configure form login
-                .formLogin(form -> form
-                        .loginPage("/login")
-                        .permitAll()
-                )
-
-                // Configure logout
-                .logout(logout -> logout
-                        .logoutUrl("/logout")
-                        .logoutSuccessUrl("/")
-                        .invalidateHttpSession(true)
-                        .clearAuthentication(true)
-                        .permitAll()
-                );
+                .authenticationProvider(authenticationProvider());
 
         return http.build();
     }
