@@ -18,18 +18,54 @@
 - **PostgreSQL 14+** (or use Docker)
 - **Git**
 
-### Installation
+### Automated Installation (Recommended)
+
+The easiest way to get started is using the automated install script:
 
 ```bash
 # Clone repository
 git clone https://github.com/yourusername/AuthenticationServer.git
 cd AuthenticationServer
 
+# Run the installer (sets up PostgreSQL and builds the application)
+./install.sh
+```
+
+The install script will:
+- ✅ Check all prerequisites (Java, Maven, PostgreSQL)
+- ✅ Install PostgreSQL if not present
+- ✅ Create and configure the database
+- ✅ Build the project
+- ✅ Optionally start the application
+
+### Manual Installation
+
+```bash
+# Clone repository
+git clone https://github.com/yourusername/AuthenticationServer.git
+cd AuthenticationServer
+
+# Setup PostgreSQL database (see SETUP.md for details)
+sudo -u postgres psql -c "CREATE DATABASE auth_server;"
+
 # Build and test
 mvn clean verify
 
 # Run application
 mvn spring-boot:run
+```
+
+### Management Scripts
+
+```bash
+# Start the application
+./start.sh
+
+# Stop the application
+./stop.sh
+
+# Uninstall (removes database and build artifacts)
+./uninstall.sh
 ```
 
 ### Access Application
