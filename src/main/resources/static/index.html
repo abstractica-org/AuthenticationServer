@@ -268,10 +268,12 @@
             </div>
             <p>Create a new user account:</p>
             <div class="code-block"><code>{
-  <span class="string">"username"</span>: <span class="string">"user@example.com"</span>,
-  <span class="string">"password"</span>: <span class="string">"SecurePassword123!"</span>,
-  <span class="string">"email"</span>: <span class="string">"user@example.com"</span>
+  <span class="string">"username"</span>: <span class="string">"testuser123"</span>,
+  <span class="string">"email"</span>: <span class="string">"user@example.com"</span>,
+  <span class="string">"password"</span>: <span class="string">"SecurePass@123"</span>,
+  <span class="string">"passwordConfirm"</span>: <span class="string">"SecurePass@123"</span>
 }</code></div>
+            <p><strong>Requirements:</strong> Username must contain only letters, numbers, underscores, and hyphens. Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character.</p>
 
             <h3>2. Verify Email</h3>
             <div class="endpoint">
@@ -286,10 +288,10 @@
             <div class="endpoint">
                 <span class="method post">POST</span> /api/auth/login
             </div>
-            <p>Authenticate with username and password:</p>
+            <p>Authenticate with username or email and password:</p>
             <div class="code-block"><code>{
-  <span class="string">"username"</span>: <span class="string">"user@example.com"</span>,
-  <span class="string">"password"</span>: <span class="string">"SecurePassword123!"</span>
+  <span class="string">"usernameOrEmail"</span>: <span class="string">"testuser123"</span>,
+  <span class="string">"password"</span>: <span class="string">"SecurePass@123"</span>
 }</code></div>
             <p><strong>Response includes:</strong> access_token, refresh_token, and token_type</p>
 
@@ -405,21 +407,21 @@
 
             <h3>Sample JavaScript Fetch Implementation</h3>
             <div class="code-block"><code><span class="highlight">// Register a user</span>
-<span class="highlight">const registerUser = async (email, password) => {</span>
+<span class="highlight">const registerUser = async (username, email, password) => {</span>
   const response = await fetch(<span class="string">'/api/auth/register'</span>, {
     method: <span class="string">'POST'</span>,
     headers: { <span class="string">'Content-Type'</span>: <span class="string">'application/json'</span> },
-    body: JSON.stringify({ username: email, email, password })
+    body: JSON.stringify({ username, email, password, passwordConfirm: password })
   });
   return response.json();
 };
 
 <span class="highlight">// Login</span>
-<span class="highlight">const loginUser = async (email, password) => {</span>
+<span class="highlight">const loginUser = async (usernameOrEmail, password) => {</span>
   const response = await fetch(<span class="string">'/api/auth/login'</span>, {
     method: <span class="string">'POST'</span>,
     headers: { <span class="string">'Content-Type'</span>: <span class="string">'application/json'</span> },
-    body: JSON.stringify({ username: email, password })
+    body: JSON.stringify({ usernameOrEmail, password })
   });
   const data = await response.json();
   localStorage.setItem(<span class="string">'accessToken'</span>, data.access_token);
@@ -439,12 +441,12 @@
             <div class="code-block"><code><span class="highlight"># Register a user</span>
 curl -X POST http://localhost:8080/api/auth/register \
   -H <span class="string">"Content-Type: application/json"</span> \
-  -d <span class="string">'{"username":"user@example.com","email":"user@example.com","password":"SecurePassword123!"}'</span>
+  -d <span class="string">'{"username":"testuser123","email":"user@example.com","password":"SecurePass@123","passwordConfirm":"SecurePass@123"}'</span>
 
-<span class="highlight"># Login</span>
+<span class="highlight"># Login (can use username or email)</span>
 curl -X POST http://localhost:8080/api/auth/login \
   -H <span class="string">"Content-Type: application/json"</span> \
-  -d <span class="string">'{"username":"user@example.com","password":"SecurePassword123!"}'</span>
+  -d <span class="string">'{"usernameOrEmail":"testuser123","password":"SecurePass@123"}'</span>
 
 <span class="highlight"># Get user profile (requires token)</span>
 curl -X GET http://localhost:8080/api/users/me \
