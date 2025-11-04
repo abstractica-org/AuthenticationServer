@@ -1,0 +1,119 @@
+databaseChangeLog:
+  - changeSet:
+      id: 008-create-registered-clients-table
+      author: auth-server
+      changes:
+        - createTable:
+            tableName: registered_clients
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  defaultValueComputed: RANDOM_UUID()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: client_id
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: client_secret_hash
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: client_name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: VARCHAR(500)
+              - column:
+                  name: redirect_uris
+                  type: VARCHAR(2000)
+              - column:
+                  name: scopes
+                  type: VARCHAR(500)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: access_token_ttl
+                  type: INTEGER
+                  constraints:
+                    nullable: false
+              - column:
+                  name: refresh_token_ttl
+                  type: INTEGER
+                  constraints:
+                    nullable: false
+              - column:
+                  name: contact_email
+                  type: VARCHAR(255)
+              - column:
+                  name: owner
+                  type: VARCHAR(255)
+              - column:
+                  name: client_credentials_enabled
+                  type: BOOLEAN
+                  constraints:
+                    nullable: false
+              - column:
+                  name: authorization_code_enabled
+                  type: BOOLEAN
+                  constraints:
+                    nullable: false
+              - column:
+                  name: refresh_token_enabled
+                  type: BOOLEAN
+                  constraints:
+                    nullable: false
+              - column:
+                  name: enabled
+                  type: BOOLEAN
+                  constraints:
+                    nullable: false
+              - column:
+                  name: deleted
+                  type: BOOLEAN
+                  constraints:
+                    nullable: false
+              - column:
+                  name: deleted_at
+                  type: TIMESTAMP
+              - column:
+                  name: last_used_at
+                  type: TIMESTAMP
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+        - createIndex:
+            tableName: registered_clients
+            indexName: idx_client_id
+            columns:
+              - column:
+                  name: client_id
+        - createIndex:
+            tableName: registered_clients
+            indexName: idx_client_enabled
+            columns:
+              - column:
+                  name: enabled
+        - createIndex:
+            tableName: registered_clients
+            indexName: idx_client_deleted
+            columns:
+              - column:
+                  name: deleted

@@ -1,0 +1,93 @@
+databaseChangeLog:
+  - changeSet:
+      id: 009-create-security-audit-events-table
+      author: auth-server
+      changes:
+        - createTable:
+            tableName: security_audit_events
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  defaultValueComputed: RANDOM_UUID()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: event_type
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: VARCHAR(36)
+              - column:
+                  name: username
+                  type: VARCHAR(255)
+              - column:
+                  name: ip_address
+                  type: VARCHAR(45)
+              - column:
+                  name: user_agent
+                  type: VARCHAR(500)
+              - column:
+                  name: description
+                  type: VARCHAR(1000)
+              - column:
+                  name: status
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: error_message
+                  type: VARCHAR(1000)
+              - column:
+                  name: details
+                  type: TEXT
+              - column:
+                  name: event_time
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: severity
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+        - createIndex:
+            tableName: security_audit_events
+            indexName: idx_event_type
+            columns:
+              - column:
+                  name: event_type
+        - createIndex:
+            tableName: security_audit_events
+            indexName: idx_user_id
+            columns:
+              - column:
+                  name: user_id
+        - createIndex:
+            tableName: security_audit_events
+            indexName: idx_event_time
+            columns:
+              - column:
+                  name: event_time
+        - createIndex:
+            tableName: security_audit_events
+            indexName: idx_status
+            columns:
+              - column:
+                  name: status
+        - createIndex:
+            tableName: security_audit_events
+            indexName: idx_ip_address
+            columns:
+              - column:
+                  name: ip_address
+        - createIndex:
+            tableName: security_audit_events
+            indexName: idx_severity
+            columns:
+              - column:
+                  name: severity

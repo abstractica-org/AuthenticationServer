@@ -1,0 +1,66 @@
+# ============================================
+# Java + Maven + IntelliJ + Spring Boot Project
+# ============================================
+
+# Maven build output
+target/
+
+# Spring Boot specific
+*.jar
+*.war
+*.zip
+*.tar.gz
+!src/main/resources/
+!src/test/resources/
+# Exclude only build outputs — not resources
+
+# JUnit / Testing
+# JUnit reports, coverage data, etc.
+test-output/
+surefire-reports/
+failsafe-reports/
+*.exec
+*.coverage
+*.lcov
+*.log
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+out/
+
+# VS Code (optional)
+.vscode/
+
+# Logs
+*.log
+logs/
+*.pid
+
+# OS files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Environment / credentials
+*.env
+.env.*
+application-*.yml
+application-*.yaml
+application-*.properties
+# (if you store secrets locally — don’t commit them)
+
+# Eclipse (if some team members use it)
+.project
+.classpath
+.settings/
+
+# Backup / temporary files
+*.swp
+*.swo
+*.tmp
+*.bak
+*.orig
+

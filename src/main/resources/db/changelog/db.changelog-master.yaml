@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - include:
+      file: db/changelog/001-initial-schema.yaml
+  - include:
+      file: db/changelog/002-oauth2-tables.yaml
+  - include:
+      file: db/changelog/003-security-tables.yaml
+  - include:
+      file: db/changelog/004-2fa-enhancement.yaml
+  - include:
+      file: db/changelog/005-client-management.yaml
+  - include:
+      file: db/changelog/006-audit-logging.yaml

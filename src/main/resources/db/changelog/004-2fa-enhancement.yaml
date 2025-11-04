@@ -1,0 +1,23 @@
+databaseChangeLog:
+  - changeSet:
+      id: 004-add-2fa-fields-to-users
+      author: auth-server
+      description: "Add 2FA fields directly to users table for easier management"
+      changes:
+        - addColumn:
+            tableName: users
+            columns:
+              - column:
+                  name: two_factor_enabled
+                  type: BOOLEAN
+                  defaultValue: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: two_factor_secret
+                  type: VARCHAR(255)
+                  nullable: true
+              - column:
+                  name: two_factor_backup_codes
+                  type: VARCHAR(2000)
+                  nullable: true

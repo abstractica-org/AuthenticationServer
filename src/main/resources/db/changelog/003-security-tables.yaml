@@ -1,0 +1,261 @@
+databaseChangeLog:
+  - changeSet:
+      id: 008-create-verification-tokens-table
+      author: auth-server
+      changes:
+        - createTable:
+            tableName: verification_tokens
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: token
+                  type: VARCHAR(500)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: user_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: token_type
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: expiry_date
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: confirmed_date
+                  type: TIMESTAMP
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: verification_tokens
+            baseColumnNames: user_id
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_verification_tokens_user_id
+            onDelete: CASCADE
+        - createIndex:
+            tableName: verification_tokens
+            indexName: idx_verification_tokens_token
+            columns:
+              - column:
+                  name: token
+        - createIndex:
+            tableName: verification_tokens
+            indexName: idx_verification_tokens_user_id
+            columns:
+              - column:
+                  name: user_id
+
+  - changeSet:
+      id: 009-create-login-attempts-table
+      author: auth-server
+      changes:
+        - createTable:
+            tableName: login_attempts
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: UUID
+              - column:
+                  name: username_or_email
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: ip_address
+                  type: VARCHAR(45)
+              - column:
+                  name: user_agent
+                  type: VARCHAR(500)
+              - column:
+                  name: attempt_time
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: success
+                  type: BOOLEAN
+                  constraints:
+                    nullable: false
+              - column:
+                  name: failure_reason
+                  type: VARCHAR(255)
+        - addForeignKeyConstraint:
+            baseTableName: login_attempts
+            baseColumnNames: user_id
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_login_attempts_user_id
+            onDelete: SET NULL
+        - createIndex:
+            tableName: login_attempts
+            indexName: idx_login_attempts_user_id
+            columns:
+              - column:
+                  name: user_id
+        - createIndex:
+            tableName: login_attempts
+            indexName: idx_login_attempts_username_or_email
+            columns:
+              - column:
+                  name: username_or_email
+        - createIndex:
+            tableName: login_attempts
+            indexName: idx_login_attempts_attempt_time
+            columns:
+              - column:
+                  name: attempt_time
+
+  - changeSet:
+      id: 010-create-two-factor-auth-table
+      author: auth-server
+      changes:
+        - createTable:
+            tableName: two_factor_auth
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: secret
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: enabled
+                  type: BOOLEAN
+                  defaultValue: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: backup_codes
+                  type: VARCHAR(2000)
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: enabled_at
+                  type: TIMESTAMP
+        - addForeignKeyConstraint:
+            baseTableName: two_factor_auth
+            baseColumnNames: user_id
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_two_factor_auth_user_id
+            onDelete: CASCADE
+        - createIndex:
+            tableName: two_factor_auth
+            indexName: idx_two_factor_auth_user_id
+            columns:
+              - column:
+                  name: user_id
+
+  - changeSet:
+      id: 011-create-refresh-tokens-table
+      author: auth-server
+      changes:
+        - createTable:
+            tableName: refresh_tokens
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+              - column:
+                  name: token_value
+                  type: VARCHAR(500)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: expiry_date
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: revoked
+                  type: BOOLEAN
+                  defaultValue: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: replaced_by_token_id
+                  type: BIGINT
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: refresh_tokens
+            baseColumnNames: user_id
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_refresh_tokens_user_id
+            onDelete: CASCADE
+        - addForeignKeyConstraint:
+            baseTableName: refresh_tokens
+            baseColumnNames: replaced_by_token_id
+            referencedTableName: refresh_tokens
+            referencedColumnNames: id
+            constraintName: fk_refresh_tokens_replaced_by
+            onDelete: SET NULL
+        - createIndex:
+            tableName: refresh_tokens
+            indexName: idx_refresh_tokens_user_id
+            columns:
+              - column:
+                  name: user_id
+        - createIndex:
+            tableName: refresh_tokens
+            indexName: idx_refresh_tokens_token_value
+            columns:
+              - column:
+                  name: token_value
